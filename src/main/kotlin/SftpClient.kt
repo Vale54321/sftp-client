@@ -1,10 +1,11 @@
 package de.heiserer
 
 import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.ChannelSftp.LsEntry
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
 import java.io.File
-import java.time.LocalDateTime
+import java.util.*
 
 class SftpClient (
     private val sshHost: String,
@@ -60,11 +61,11 @@ class SftpClient (
         }
     }
 
-    fun uploadFile(file: File, directory: String) {
+    fun uploadFile(file: File, directory: SftpFile) {
         if (file.exists()) {
-            createDirectory(directory)
+            createDirectory(directory.getPath())
 
-            val remoteFilePath = directory + File.separator + file.name
+            val remoteFilePath = directory.getPath() + File.separator + file.name
 
             channelSftp!!.put(file.path, remoteFilePath)
         } else {
@@ -72,11 +73,11 @@ class SftpClient (
         }
     }
 
-    fun uploadFileAndDelete(file: File, directory: String) {
+    fun uploadFileAndDelete(file: File, directory: SftpFile) {
         if (file.exists()) {
-            createDirectory(directory)
+            createDirectory(directory.getPath())
 
-            val remoteFilePath = directory + File.separator + file.name
+            val remoteFilePath = directory.getPath() + File.separator + file.name
 
             channelSftp!!.put(file.path, remoteFilePath)
 
@@ -84,5 +85,28 @@ class SftpClient (
         } else {
             println("File ${file.path} could not be created")
         }
+    }
+
+    fun listFiles(directory: SftpFile): List<SftpFile> {
+        val fileList = mutableListOf<SftpFile>()
+
+        val files = channelSftp!!.ls(directory.getPath()) as Vector<ChannelSftp.LsEntry>
+
+        for (entry in files) {
+            fileList.add(SftpFile(getAbsolutePath().getPath(), entry.filename))
+        }
+
+        fileList.forEach { file -> println(file.getPath()) }
+
+        return fileList
+    }
+
+    fun getAbsolutePath(): SftpFile{
+        return SftpFile(channelSftp!!.pwd())
+    }
+
+    fun changeDirectory(directory: SftpFile) {
+        println("changing dir to: ${directory.getPath()}")
+        channelSftp!!.cd(directory.getPath())
     }
 }
