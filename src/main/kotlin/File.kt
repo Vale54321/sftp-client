@@ -1,5 +1,6 @@
 package de.heiserer
 
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -11,7 +12,7 @@ class SftpFile {
     }
 
     constructor(vararg pathSegments: String) {
-        this.path = Paths.get(pathSegments.joinToString("/"))
+        this.path = Paths.get(pathSegments.joinToString(File.separator))
     }
 
     fun printPath(){
@@ -19,7 +20,8 @@ class SftpFile {
     }
 
     fun getPath(): String{
-        return path.toString()
+        // convert path to unix path for every os
+        return path.toString().replace("\\", "/")
     }
 
     fun getName(): String{
