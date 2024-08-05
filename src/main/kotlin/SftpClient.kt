@@ -1,7 +1,6 @@
 package de.heiserer
 
 import com.jcraft.jsch.ChannelSftp
-import com.jcraft.jsch.ChannelSftp.LsEntry
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
 import java.io.File
@@ -93,7 +92,10 @@ class SftpClient (
         val files = channelSftp!!.ls(directory.getPath()) as Vector<ChannelSftp.LsEntry>
 
         for (entry in files) {
-            fileList.add(SftpFile(getAbsolutePath().getPath(), entry.filename))
+            // Skip the entry if it's "." or ".."
+            if (entry.filename != "." && entry.filename != "..") {
+                fileList.add(SftpFile(getAbsolutePath().getPath(), entry.filename))
+            }
         }
 
         fileList.forEach { file -> println(file.getPath()) }
@@ -108,5 +110,10 @@ class SftpClient (
     fun changeDirectory(directory: SftpFile) {
         println("changing dir to: ${directory.getPath()}")
         channelSftp!!.cd(directory.getPath())
+    }
+
+
+    fun isDirectory(path: String): Boolean {
+        return channelSftp!!.stat(path).isDir
     }
 }
